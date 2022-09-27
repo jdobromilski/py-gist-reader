@@ -1,24 +1,17 @@
 """
-gist-reader.py: Reads gist for given user
+gist_reader.py: Reads gist for given user
 """
-
-from multiprocessing import context
-import click
-import datetime
-from github import Github
-import json
 import os
+import json
+import datetime
+import click
+from github import Github
 
-github_client = None
-github_user = None
 state_file = "last_run.json"
 
 @click.group()
 def cli():
-    """List available gists"""
-    global github_client
-    github_client = Github()
-    # github_user = user
+    """Generic methods"""
     
 @cli.command()
 @click.option('--since-last-run', '-r', 'since_last_run', is_flag=True, show_default=True, 
@@ -26,8 +19,8 @@ def cli():
 @click.option('--user', '-u', 'user', required=True,
     help="Specify GitHub username with public gists")
 @click.option('--since', '-s', 'since', required=False,
-    help=f"Warning! Ignored if --since-last-run flag is 'True'. List of gists published since given datetime, \n" + \
-    "(Format: '2022-09-26T14:54:54Z')")    
+    help="Warning! Ignored if --since-last-run flag is 'True'. List of gists published since " + \
+    "given datetime, (Format: '2022-09-26T14:54:54Z')")    
 
 def list(user, since, since_last_run):
     """list User gists"""
@@ -40,6 +33,7 @@ def list(user, since, since_last_run):
 def get_gists(user, since, since_last_run):
     """Read user gists"""
     # User: JoeyBurzynski
+    github_client = Github()
     user_gists = []
     page = 0
     since = datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%SZ")
@@ -63,21 +57,21 @@ def write_last_run(user, current_datetime):
     data = {}
 
     if os.path.exists(state_file):
-        with open(state_file, 'r', encoding='utf-8') as f:
-            data = json.loads(f.read())
+        with open(state_file, 'r', encoding='utf-8') as file:
+            data = json.loads(file.read())
     
     data[user] = current_datetime
 
-    with open(state_file, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    with open(state_file, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 def read_last_run(user):
     """Read latest execution details"""
     data = {}
 
     if os.path.exists(state_file):
-        with open(state_file, 'r', encoding='utf-8') as f:
-            data[user] = json.loads(f.read())[user]
+        with open(state_file, 'r', encoding='utf-8') as file:
+            data[user] = json.loads(file.read())[user]
     
     return data
 
