@@ -27,11 +27,12 @@ def cli(auth_token):
 @ cli.command('list')
 @ click.option('--user', '-u', 'user', required=True,
                help="Specify GitHub username")
-@ click.option('--since-last-run', '-r', 'since_last_run', is_flag=True, show_default=True,
-               required=False, default=False, help="Lists gists created since last local execution [FLAG]")
+@ click.option('--since-last-run', '-r', 'since_last_run', is_flag=True, required=False,
+               show_default=True, default=False,
+               help="Lists gists created since last local execution [FLAG]")
 @ click.option('--since-given-datetime', '-s', 'since_given_datetime', required=False, default=None,
-               help=" List of gists published since given date, (Format: '2022-09-26T14:54:54Z')\n" +
-               "Warning! Ignored if --since-last-run flag is 'True'.")
+               help=" List of gists published since given date, (Format: '2022-09-26T14:54:54Z')" +
+               "\nWarning! Ignored if --since-last-run flag is 'True'.")
 def lists_gists(user, since_last_run, since_given_datetime):
     """Listing gists for a given user"""
     user_gists = get_gists(user, since_last_run, since_given_datetime)
@@ -122,7 +123,8 @@ def get_id(gist_id):
         is_public = '[Private]'
 
     print(
-        f"{is_public} Owner: {gist.owner.login}, Id: {gist.id}, public: {gist.public}, Url: {gist.url}, created_at: {gist.created_at}, updated_at: {gist.updated_at}")
+        f"{is_public} Owner: {gist.owner.login}, Id: {gist.id}, public: {gist.public}, + \
+            Url: {gist.url}, created_at: {gist.created_at}, updated_at: {gist.updated_at}")
 
     for key, value in gist_dict['files'].items():
         print(
