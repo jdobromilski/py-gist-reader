@@ -16,7 +16,7 @@ GITHUB_CLIENT = None
 @click.group()
 @click.option('--auth-token', '-t', 'auth_token', required=False,
               default=lambda: os.environ.get("GISTS_AUTH_TOKEN", None),
-              help="Authentication token, gets environment variable GISTS_AUTH_TOKEN")
+              help="Authentication token, reads environment variable GISTS_AUTH_TOKEN")
 def cli(auth_token):
     """Read user gists"""
     global GITHUB_CLIENT
@@ -24,16 +24,16 @@ def cli(auth_token):
     GITHUB_CLIENT = Github(auth_token)
 
 
-@cli.command('get')
-@click.option('--user', '-u', 'user', required=True,
-              help="Specify GitHub username with public gists")
-@click.option('--since-last-run', '-r', 'since_last_run', is_flag=True, show_default=False,
-              required=False, default=False, help="Lists gists created since last local execution")
-@click.option('--since-given-datetime', '-s', 'since_given_datetime', required=False, default=None,
-              help="Warning! Ignored if --since-last-run flag is 'True'. List of gists published " +
-              "since given datetime, (Format: '2022-09-26T14:54:54Z')")
-def get(user, since_last_run, since_given_datetime):
-    """Gists for given user"""
+@ cli.command('list')
+@ click.option('--user', '-u', 'user', required=True,
+               help="Specify GitHub username")
+@ click.option('--since-last-run', '-r', 'since_last_run', is_flag=True, show_default=True,
+               required=False, default=False, help="Lists gists created since last local execution [FLAG]")
+@ click.option('--since-given-datetime', '-s', 'since_given_datetime', required=False, default=None,
+               help=" List of gists published since given date, (Format: '2022-09-26T14:54:54Z')\n" +
+               "Warning! Ignored if --since-last-run flag is 'True'.")
+def lists_gists(user, since_last_run, since_given_datetime):
+    """Listing gists for a given user"""
     user_gists = get_gists(user, since_last_run, since_given_datetime)
 
     print(f"Number of gists for {user}: {len(user_gists)}")
@@ -103,8 +103,30 @@ def read_last_execution_time(user):
     return data
 
 
-def gist_details():
+@cli.command('get')
+@click.option('--gist-id', '-g', 'gist_id', required=True,
+              help="Get gist by ID")
+def get_id(gist_id):
     """Get gist details"""
+
+    try:
+        gist = GITHUB_CLIENT.get_gist(gist_id)
+    except GithubException as exc:
+        raise exc
+
+    gist_dict = dict(gist.raw_data)
+
+    if gist.public is True:
+        is_public = '[Public]'
+    else:
+        is_public = '[Private]'
+
+    print(
+        f"{is_public} Owner: {gist.owner.login}, Id: {gist.id}, public: {gist.public}, Url: {gist.url}, created_at: {gist.created_at}, updated_at: {gist.updated_at}")
+
+    for key, value in gist_dict['files'].items():
+        print(
+            f"filename: {key}, raw_url: {value['raw_url']}, \ncontent: \n{value['content']}")
 
 
 if __name__ == '__main__':
